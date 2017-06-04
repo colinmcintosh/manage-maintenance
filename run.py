@@ -27,11 +27,11 @@ def load_config_options_from_env():
 
 
 def main():
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
     username, password = load_creds()
     imap_address = 'imap.gmail.com'
     manager = ManageMaintenance(imap_username=username, imap_password=password, imap_address=imap_address, imap_folder=MAILBOX_FOLDER)
-    for maintenance_notification in manager.list_maintenances(since="1-Jun-2017"):
+    for maintenance_notification in manager.list_maintenances(since="1-May-2017"):
         LOG.info("Adding maintenance event: {} {} {}".format(maintenance_notification.partner, maintenance_notification.cid, maintenance_notification.start_time))
         manager.add_maintenance_to_calendar(maintenance_notification=maintenance_notification)
 

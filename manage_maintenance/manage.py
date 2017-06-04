@@ -10,6 +10,8 @@ import yaml
 from collections import namedtuple
 from datetime import datetime
 
+from icalendar import Calendar, vDatetime
+
 from manage_maintenance.google_calendar import GoogleCalendar
 from manage_maintenance.imap import IMAP
 
@@ -82,9 +84,9 @@ class ManageMaintenance(object):
                 )
 
                 # Convert start_time and end_time to datetime objects
-                if start_time:
+                if start_time and not isinstance(start_time, datetime):
                     start_time = datetime.strptime(start_time, notification_config["start_time_format"])
-                if end_time:
+                if end_time and not isinstance(end_time, datetime):
                     end_time = datetime.strptime(end_time, notification_config["end_time_format"])
 
                 # Yield each item
@@ -101,6 +103,11 @@ class ManageMaintenance(object):
                     LOG.warning("Missing one of CID, Start Time, or End Time: %s, %s, %s", cid, start_time, end_time)
         return
 
+    def extract_times_from_ical(self, ical_obj):
+        start_time = ical_obj.subcomponents[0]["DTSTART"].dt
+        end_time = ical_obj.subcomponents[0]["DTEND"].dt
+        return start_time, end_time
+
     def _extract_info_from_message_naive(self, message, cid_pattern, start_time_pattern, end_time_pattern):
         cid = None
         start_time = None
@@ -112,6 +119,10 @@ class ManageMaintenance(object):
                 message_body = message_part.get_payload(decode=True)
             elif message_part.get_content_type() == "text/html":
                 message_body = message_part.get_payload(decode=True)
+            elif message_part.get_content_type() == "text/calendar":
+                message_body = message_part.get_payload(decode=True)
+                ics = Calendar.from_ical(message_body)
+                start_time, end_time = self.extract_times_from_ical(ics)
             else:
                 continue    # We don't know how to parse this message part type
 
@@ -131,8 +142,8 @@ class ManageMaintenance(object):
                 end_time = match.group(1)
 
             # If we have all of the things we need stop looking
-            if cid and start_time and end_time:
-                break
+            #if cid and start_time and end_time:
+            #    break
         return cid, start_time, end_time, message_body
 
     def _generate_maintenance_uuid(self, maintenance_notification):

@@ -27,7 +27,7 @@ class IMAP(object):
             raise Exception("Error selecting folder named '{}' via IMAP: {} {}".format(folder_name, return_code, data))
 
         # Build search query
-        query = "ALL"
+        query = "SUBJECT \"NTT Communications\""
         if since:
             query += " SENTSINCE {}".format(since)
 
