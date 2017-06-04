@@ -31,7 +31,6 @@ def main():
     for maintenance_notification in manager.list_maintenances(since="1-Jun-2017"):
         print(maintenance_notification)
         manager.add_maintenance_to_calendar(maintenance_notification=maintenance_notification)
-        break
 
 
 if __name__ == "__main__":
