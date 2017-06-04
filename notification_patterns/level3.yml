@@ -1,0 +1,8 @@
+- partner_name: "Level 3"
+  email_domain_pattern: "no-reply@level3\\.com"
+  email_subject_pattern: "Initial"
+  maintenance_cid_pattern: "<td>(\\w{4}\\d{4})<\\/td>"
+  maintenance_start_time_pattern: "(\\d{1,2}-\\w{3}-\\d{4} \\d{2}:\\d{2}:\\d{2}) GMT TO \\d{1,2}-\\w{3}-\\d{4} \\d{2}:\\d{2}:\\d{2} GMT"
+  maintenance_end_time_pattern: "\\d{1,2}-\\w{3}-\\d{4} \\d{2}:\\d{2}:\\d{2} GMT TO (\\d{1,2}-\\w{3}-\\d{4} \\d{2}:\\d{2}:\\d{2}) GMT"
+  start_time_format: "%d-%b-%Y %H:%M:%S"
+  end_time_format: "%d-%b-%Y %H:%M:%S"

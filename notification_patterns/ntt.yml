@@ -1,0 +1,8 @@
+- partner_name: "NTT"
+  email_domain_pattern: "coins@noc\\.us\\.ntt\\.net"
+  email_subject_pattern: "Maintenance Notice"
+  maintenance_cid_pattern: "(\\d{6})\\s+\\w+"
+  maintenance_start_time_pattern: "\\*Start Date\\/Time\\*:\\s+(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}) UTC"
+  maintenance_end_time_pattern: "\\*End Date\\/Time\\*:\\s+(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}) UTC"
+  start_time_format: "%Y-%m-%d %H:%M"
+  end_time_format: "%Y-%m-%d %H:%M"
