@@ -4,6 +4,7 @@ import errno
 import httplib2
 import os
 from datetime import datetime, timedelta, date
+import dateutil.parser
 import logging
 import argparse
 from imp import reload
@@ -63,6 +64,9 @@ class GoogleCalendar(object):
         mkdir_p(CREDENTIALS_DIR)
         credentials = self.get_credentials(CLIENT_SECRET_FILE, SCOPES, CREDENTIALS_DIR, CREDENTIALS_FILENAME)
         self._service = self.get_service(credentials)
+
+
+        self.naive_find_event_overlap()
 
     def create_logger(self, logging_filename):
 
@@ -199,6 +203,39 @@ class GoogleCalendar(object):
 
         # Call generic helper
         return self.create_calendar_event(newEventBody, calendarId=calendarId)
+
+    # A naive helper to check for overlapping events
+    def naive_find_event_overlap(self, calendarId='primary', singleEvents=True):
+
+        # Be verbose
+        self._logger.info("Getting the upcoming events")
+
+        # list events
+        eventsResult = self._service.events().list(
+                calendarId=calendarId, singleEvents=singleEvents
+        ).execute()
+
+        events = eventsResult.get('items', [])
+
+        if not events:
+            self._logger.info("No upcoming events found.")
+
+        ## Check for overlapping events, naively
+        # Iterate all n events
+        for i_event1 in events:
+            # Iterate all n events again
+            for i_event2 in events:
+                # For the n(n-1) events
+                if i_event1['id'] != i_event2['id']:
+                    
+                    start1_dt = dateutil.parser.parse(i_event1['start'].get('dateTime'))
+                    start2_dt = dateutil.parser.parse(i_event2['start'].get('dateTime'))
+                    end1_dt   = dateutil.parser.parse(i_event1['end'].get('dateTime'))
+                    end2_dt   = dateutil.parser.parse(i_event2['end'].get('dateTime'))
+
+                    if ((start1_dt == start2_dt) or ((start1_dt > start2_dt and start1_dt <= end2_dt) or (start1_dt <= start2_dt and start2_dt <= end1_dt))):
+                        self._logger.info("overlap1 date: {} - {}; event (ID: {}): '{}'".format(start1_dt, end1_dt, i_event1['id'], i_event1['summary']))
+                        self._logger.info("overlap2 date: {} - {}; event (ID: {}): '{}'".format(start2_dt, end2_dt, i_event2['id'], i_event2['summary']))
 
 if __name__ == '__main__':
     bla = GoogleCalendar()
