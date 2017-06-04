@@ -151,7 +151,7 @@ class ManageMaintenance(object):
                 start_time=maintenance_notification.start_time,
                 end_time=maintenance_notification.end_time,
                 event_summary="Scheduled Maintenance: {} {}".format(maintenance_notification.partner, maintenance_notification.cid),
-                event_description="{} will be performing maintenance starting {} and ending {} that will affect the following CIDs: {}\n\n\n{}".format(
+                event_description="{} will be performing maintenance starting {} and ending {} that will affect the following CIDs:\n{}\n\n\n{}".format(
                     maintenance_notification.partner,
                     maintenance_notification.start_time.isoformat(),
                     maintenance_notification.end_time.isoformat(),
