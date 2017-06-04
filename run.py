@@ -9,6 +9,9 @@ from manage_maintenance.manage import ManageMaintenance
 MAILBOX_FOLDER = "_OpenConnect/NetOps"
 
 
+LOG = logging.getLogger(__name__)
+
+
 def load_creds():
     with open(os.path.join(os.path.expanduser("~"), ".maintmanage")) as f:
         file_blob = f.read()
@@ -29,7 +32,7 @@ def main():
     imap_address = 'imap.gmail.com'
     manager = ManageMaintenance(imap_username=username, imap_password=password, imap_address=imap_address, imap_folder=MAILBOX_FOLDER)
     for maintenance_notification in manager.list_maintenances(since="1-Jun-2017"):
-        print(maintenance_notification)
+        LOG.info("Adding maintenance event: {} {} {}".format(maintenance_notification.partner, maintenance_notification.cid, maintenance_notification.start_time))
         manager.add_maintenance_to_calendar(maintenance_notification=maintenance_notification)
 
 
