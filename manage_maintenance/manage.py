@@ -11,7 +11,9 @@ from collections import namedtuple
 from datetime import datetime
 
 from icalendar import Calendar, vDatetime
+from tinydb import TinyDB
 
+from manage_maintenance.config import config
 from manage_maintenance.google_calendar import GoogleCalendar
 from manage_maintenance.imap import IMAP
 
@@ -19,7 +21,7 @@ from manage_maintenance.imap import IMAP
 LOG = logging.getLogger(__name__)
 
 
-MaintenanceNotification = namedtuple("MaintenanceNotification", ("subject", "start_time", "end_time", "cid", "partner", "original_message"))
+MaintenanceNotification = namedtuple("MaintenanceNotification", ("subject", "start_time", "end_time", "cid", "partner", "original_message", "event_uuid"))
 
 
 class ManageMaintenance(object):
@@ -97,7 +99,8 @@ class ManageMaintenance(object):
                         end_time=end_time,
                         cid=cid,
                         partner=notification_config["partner_name"],
-                        original_message=original_message
+                        original_message=original_message,
+                        event_uuid=self._generate_maintenance_uuid(cid=cid, start_time=start_time, end_time=end_time)
                     )
                 else:
                     LOG.warning("Missing one of CID, Start Time, or End Time: %s, %s, %s", cid, start_time, end_time)
@@ -146,19 +149,18 @@ class ManageMaintenance(object):
             #    break
         return cid, start_time, end_time, message_body
 
-    def _generate_maintenance_uuid(self, maintenance_notification):
+    def _generate_maintenance_uuid(self, cid, start_time, end_time):
         return hashlib.sha1(bytes("{}{}{}".format(
-            maintenance_notification.cid,
-            maintenance_notification.start_time.isoformat(),
-            maintenance_notification.end_time.isoformat()
+            cid,
+            start_time.isoformat(),
+            end_time.isoformat()
         ), "utf-8")).hexdigest()
 
     def add_maintenance_to_calendar(self, maintenance_notification):
-        event_uuid = self._generate_maintenance_uuid(maintenance_notification)
         # event_uuid = str(uuid.uuid4()).replace("-", "")
-        if not self._google_calendar.is_existing_event_id(eventId=event_uuid):
+        if not self._google_calendar.is_existing_event_id(eventId=maintenance_notification.event_uuid):
             self._google_calendar.create_maintenance_event(
-                newEventId=event_uuid,
+                newEventId=maintenance_notification.event_uuid,
                 start_time=maintenance_notification.start_time,
                 end_time=maintenance_notification.end_time,
                 event_summary="Scheduled Maintenance: {} {}".format(maintenance_notification.partner, maintenance_notification.cid),
@@ -171,3 +173,10 @@ class ManageMaintenance(object):
                 ),
                 event_location=""
             )
+
+    @staticmethod
+    def add_maintenance_to_schedule(maintenance_notification):
+        os.makedirs(config.SCHEDULE_FILE_PATH, exist_ok=True)
+        with TinyDB(os.path.join(config.SCHEDULE_FILE_PATH, config.SCHEDULE_FILE_NAME)) as db:
+            db.insert(maintenance_notification._asdict())
+        return
